@@ -68,7 +68,7 @@ local function EmbedBlizOptions()
     open:SetPoint( "CENTER", panel, "CENTER", 0, 0 )
     open:SetWidth( 250 )
     open:SetHeight( 25 )
-    open:SetText( "打开Hekili Titan 设置界面" )
+    open:SetText( "Open Hekili Titan Settings" )
 
     open:SetScript( "OnClick", function ()
         if InterfaceOptionsFrameOkay then
@@ -131,8 +131,8 @@ function Hekili:OnInitialize()
             end,
             OnTooltipShow = function( tt )
                 tt:AddDoubleLine( "Hekili", ns.UI.Minimap.text )
-                tt:AddLine( "|cFFFFFFFF点击鼠标左键进行快速切换。|r" )
-                tt:AddLine( "|cFFFFFFFF点击鼠标右键打开设置界面。|r" )
+                tt:AddLine( "|cFFFFFFFFLeft-click to make quick adjustments.|r" )
+                tt:AddLine( "|cFFFFFFFFRight-click to open the options interface.|r" )
             end
         } )
 
@@ -143,15 +143,15 @@ function Hekili:OnInitialize()
 
             if p.toggles.essences.override then
                 -- Don't show Essences here if it's overridden by CDs anyway?
-                self.text = format( "|c%s%s|r %s主要爆发|r %s打断|r %s防御|r", color,
-                    m == "single" and "单体" or ( m == "aoe" and "AOE" or ( m == "dual" and "双显" or ( m == "reactive" and "响应" or "自动" ) ) ),
+                self.text = format( "|c%s%s|r %sCD|r %sInt|r %sDef|r", color,
+                    m == "single" and "ST" or ( m == "aoe" and "AOE" or ( m == "dual" and "Dual" or ( m == "reactive" and "React" or "Auto" ) ) ),
                     p.toggles.cooldowns.value and "|cFF00FF00" or "|cFFFF0000",
                     p.toggles.interrupts.value and "|cFF00FF00" or "|cFFFF0000",
                     p.toggles.defensives.value and "|cFF00FF00" or "|cFFFF0000" )
             else
-                self.text = format( "|c%s%s|r %s主要爆发|r %s次要爆发|r %s打断|r",
+                self.text = format( "|c%s%s|r %sCD|r %sCov|r %sInt|r",
                     color,
-                    m == "single" and "单体" or ( m == "aoe" and "AOE" or ( m == "dual" and "双显" or ( m == "reactive" and "响应" or "自动" ) ) ),
+                    m == "single" and "ST" or ( m == "aoe" and "AOE" or ( m == "dual" and "Dual" or ( m == "reactive" and "React" or "Auto" ) ) ),
                     p.toggles.cooldowns.value and "|cFF00FF00" or "|cFFFF0000",
                     p.toggles.essences.value and "|cFF00FF00" or "|cFFFF0000",
                     p.toggles.interrupts.value and "|cFF00FF00" or "|cFFFF0000" )
