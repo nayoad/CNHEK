@@ -167,7 +167,7 @@ function ns.StartConfiguration( external )
         f.Header:SetFont( path, 18, "OUTLINE" )
     end
     f.Header:SetAllPoints( HekiliNotificationMover )
-    f.Header:SetText( "通知栏" )
+    f.Header:SetText( "Notifications" )
     f.Header:SetJustifyH( "CENTER" )
     f.Header:Show()
 
@@ -188,9 +188,9 @@ function ns.StartConfiguration( external )
         if H.Config then
             GameTooltip:SetOwner( self, "ANCHOR_TOPRIGHT" )
 
-            GameTooltip:SetText( "Hekili:通知栏" )
-            GameTooltip:AddLine( "鼠标左键拖动可移动位置。", 1, 1, 1 )
-            GameTooltip:AddLine( "鼠标右键点击可打开通知栏设置页面。", 1, 1, 1 )
+            GameTooltip:SetText( "Hekili: Notifications" )
+            GameTooltip:AddLine( "Left-click and hold to move.", 1, 1, 1 )
+            GameTooltip:AddLine( "Right-click to open Notification panel settings.", 1, 1, 1 )
             GameTooltip:Show()
         end
     end )
@@ -269,9 +269,9 @@ function ns.StartConfiguration( external )
                     GameTooltip:SetOwner( self, "ANCHOR_TOPRIGHT" )
 
                     GameTooltip:SetText( "Hekili: " .. i )
-                    GameTooltip:AddLine( "鼠标左键拖动可移动位置。", 1, 1, 1 )
-                    GameTooltip:AddLine( "鼠标右键点击打开" .. i .. "设置页面。", 1, 1, 1 )
-                    if not H:IsDisplayActive( i, true ) then GameTooltip:AddLine( "此显示栏处于未激活状态。", 0.5, 0.5, 0.5 ) end
+                    GameTooltip:AddLine( "Left-click and hold to move.", 1, 1, 1 )
+                    GameTooltip:AddLine( "Right-click to open " .. i .. " display settings.", 1, 1, 1 )
+                    if not H:IsDisplayActive( i, true ) then GameTooltip:AddLine( "This display is not currently active.", 0.5, 0.5, 0.5 ) end
                     GameTooltip:Show()
                 end
             end )
@@ -415,13 +415,13 @@ do
         },
 
         {
-            text = "启用",
+            text = "Enable",
             func = function () Hekili:Toggle() end,
             checked = function () return Hekili.DB.profile.enabled end,
         },
 
         {
-            text = "暂停",
+            text = "Pause",
             func = function () return Hekili:TogglePause() end,
             checked = function () return Hekili.Pause end,
         },
@@ -432,18 +432,18 @@ do
 
         {
             isTitle = 1,
-            text = "显示模式",
+            text = "Display Mode",
             notCheckable = 1,
         },
 
         {
-            text = "自动",
+            text = "Auto",
             func = function () SetDisplayMode( "automatic" ) end,
             checked = function () return IsDisplayMode( p, "automatic" ) end,
         },
 
         {
-            text = "单目标",
+            text = "Single",
             func = function () SetDisplayMode( "single" ) end,
             checked = function () return IsDisplayMode( p, "single" ) end,
         },
@@ -455,13 +455,13 @@ do
         },
 
         {
-            text = "双显",
+            text = "Dual",
             func = function () SetDisplayMode( "dual" ) end,
             checked = function () return IsDisplayMode( p, "dual" ) end,
         },
 
         {
-            text = "响应",
+            text = "Reactive",
             func = function () SetDisplayMode( "reactive" ) end,
             checked = function () return IsDisplayMode( p, "reactive" ) end,
         },
@@ -472,36 +472,36 @@ do
 
         {
             isTitle = 1,
-            text = "快捷开关",
+            text = "Toggles",
             notCheckable = 1,
         },
 
         {
-            text = "主要爆发",
+            text = "Cooldowns",
             func = function() Hekili:FireToggle( "cooldowns" ); ns.UI.Minimap:RefreshDataText() end,
             checked = function () return Hekili.DB.profile.toggles.cooldowns.value end,
         },
 
         {
-            text = "次要爆发",
+            text = "Covenants",
             func = function() Hekili:FireToggle( "essences" ); ns.UI.Minimap:RefreshDataText() end,
             checked = function () return Hekili.DB.profile.toggles.essences.value end,
         },
 
         {
-            text = "打断",
+            text = "Interrupts",
             func = function() Hekili:FireToggle( "interrupts" ); ns.UI.Minimap:RefreshDataText() end,
             checked = function () return Hekili.DB.profile.toggles.interrupts.value end,
         },
 
         {
-            text = "防御",
+            text = "Defensives",
             func = function() Hekili:FireToggle( "defensives" ); ns.UI.Minimap:RefreshDataText() end,
             checked = function () return Hekili.DB.profile.toggles.defensives.value end,
         },
 
         {
-            text = "药剂",
+            text = "Potions",
             func = function() Hekili:FireToggle( "potions" ); ns.UI.Minimap:RefreshDataText() end,
             checked = function () return Hekili.DB.profile.toggles.potions.value end,
         },
@@ -533,7 +533,7 @@ do
                         } )
 
                         local submenu = {
-                            text = "优先级列表",
+                            text = "Priority List",
                             hasArrow = true,
                             menuList = {},
                             notCheckable = true,
@@ -562,15 +562,15 @@ do
 
                         if #class.specs[ i ].packSelectors > 0 then
                             insert( menuData, {
-                                text = "使用优先级选择器",
+                                text = "Use Pack Selector",
                                 func = function ()
                                     local spec = rawget( Hekili.DB.profile.specs, i )
                                     if spec then
                                         spec.usePackSelector = not spec.usePackSelector
                                         if Hekili.DB.profile.notifications.enabled then
-                                            Hekili:Notify( "优先级选择器：" .. ( spec.selector and "开" or "关" ) )
+                                            Hekili:Notify( "Pack Selector: " .. ( spec.selector and "ON" or "OFF" ) )
                                         else
-                                            self:Print( "优先级选择器：" .. ( spec.selector and " |cFF00FF00启用|r。" or " |cFFFF0000禁用|r。" ) )
+                                            self:Print( "Pack Selector: " .. ( spec.selector and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
                                         end
                                     end
                                 end,
@@ -583,15 +583,15 @@ do
                         end
 
                         insert( menuData, {
-                            text = "推荐切换目标",
+                            text = "|TInterface\\Addons\\Hekili\\Textures\\Cycle:0|t Recommend Target Swaps",
                             func = function ()
                                 local spec = rawget( Hekili.DB.profile.specs, i )
                                 if spec then
                                     spec.cycle = not spec.cycle
                                     if Hekili.DB.profile.notifications.enabled then
-                                        Hekili:Notify( "推荐切换目标：" .. ( spec.cycle and "开" or "关" ) )
+                                        Hekili:Notify( "Recommend Target Swaps: " .. ( spec.cycle and "ON" or "OFF" ) )
                                     else
-                                        self:Print( "推荐切换目标：" .. ( spec.cycle and " |cFF00FF00启用|r。" or " |cFFFF0000禁用|r。" ) )
+                                        self:Print( "Recommend Target Swaps: " .. ( spec.cycle and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
                                     end
                                 end
                             end,
@@ -630,9 +630,9 @@ do
                                             setting.info.set( menu.args, not setting.info.get( menu.args ) )
 
                                             if Hekili.DB.profile.notifications.enabled then
-                                                Hekili:Notify( setting.info.name .. "：" .. ( setting.info.get( menu.args ) and "开" or "关" ) )
+                                                Hekili:Notify( setting.info.name .. ": " .. ( setting.info.get( menu.args ) and "ON" or "OFF" ) )
                                             else
-                                                self:Print( setting.info.name .. "：" .. ( setting.info.get( menu.args ) and " |cFF00FF00启用|r" or " |cFFFF0000禁用|r" ) )
+                                                self:Print( setting.info.name .. ": " .. ( setting.info.get( menu.args ) and " |cFF00FF00ENABLED|r." or " |cFFFF0000DISABLED|r." ) )
                                             end
                                         end,
                                         checked = function ()
