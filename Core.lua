@@ -48,7 +48,7 @@ local function EmbedBlizOptions()
         InterfaceOptions_AddCategory(panel)
     else
         -- 经典版本
-        panel.okay = function() end  -- 需要这个函数使面板正常工作
+        panel.okay = function() end  -- Required for the panel to work properly
         panel.cancel = function() end
         panel.refresh = function() end
         panel.default = function() end

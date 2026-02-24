@@ -175,33 +175,33 @@ local enemyExclusions = {
     [166971] = true,      -- Niklaus
     [168113] = 329606,    -- Grashaal (when shielded)
     [168112] = 329636,    -- Kaal (when shielded)
---------------------新增-by风雪20250705-----
---------------------奥杜尔------------------
-    [33121] = true,       -- 掌炉者-铁铸像
-    [33453] = true,       -- 黑铁符文哨兵
-    [33388] = true,       -- 黑暗符文守卫
-    [33846] = true,       -- 黑暗符文戒卫
-    [33344] = true,       -- 拆解者-XM-024击打者
-    [33768] = true,       -- 科隆加恩-碎石
-    [34034] = true,       -- 欧尔莉亚-群居守卫者
-    [33052] = true,       -- 奥尔加隆-有生命的星座
-    [33089] = true,       -- 奥尔加隆-暗物质
-    [34097] = true,       -- 奥尔加隆-被释放的黑暗物质
----------------------冰冠堡垒----------------
-    [38508] = true,       -- 死亡使者萨鲁法尔-血兽
-    [36899] = true,       -- 腐面-大软泥怪
-    [36897] = true,       -- 腐面-小软泥怪
-    [37697] = true,       -- 普崔塞德教授-不稳定的软泥怪
-    [37562] = true,       -- 普崔塞德教授-毒气之云
-    [36678] = true,       -- 普崔塞德教授
-    [37972] = true,       -- 鲜血议会-凯雷塞斯王子
-    [37973] = true,       -- 鲜血议会-塔达拉姆王子
-    [37970] = true,       -- 鲜血议会-瓦拉纳王子
-    [38454] = true,       -- 鲜血议会-动力炸弹
-    [38369] = true,       -- 鲜血议会-黑暗之核
-    [36980] = true,       -- 辛达苟萨-寒冰之墓
-    [37689] = true,       -- 巫妖王-蹒跚的血僵尸
-    [37695] = true,       -- 巫妖王-食尸鬼苦工
+--------------------Added-by-Fengxue-20250705-----
+--------------------Ulduar------------------
+    [33121] = true,       -- Ignis the Furnace Master - Iron Construct
+    [33453] = true,       -- Iron Rune Sentinel
+    [33388] = true,       -- Dark Rune Guardian
+    [33846] = true,       -- Dark Rune Watcher
+    [33344] = true,       -- Razorscale - Devouring Flame Turret
+    [33768] = true,       -- Kologarn - Stone Grip
+    [34034] = true,       -- Auriaya - Sanctum Sentry
+    [33052] = true,       -- Algalon - Living Constellation
+    [33089] = true,       -- Algalon - Dark Matter
+    [34097] = true,       -- Algalon - Unleashed Dark Matter
+---------------------Icecrown Citadel----------------
+    [38508] = true,       -- Deathbringer Saurfang - Blood Beast
+    [36899] = true,       -- Rotface - Big Ooze
+    [36897] = true,       -- Rotface - Small Ooze
+    [37697] = true,       -- Professor Putricide - Unstable Ooze
+    [37562] = true,       -- Professor Putricide - Ooze Cloud
+    [36678] = true,       -- Professor Putricide
+    [37972] = true,       -- Blood Council - Prince Keleseth
+    [37973] = true,       -- Blood Council - Prince Taldaram
+    [37970] = true,       -- Blood Council - Prince Valanar
+    [38454] = true,       -- Blood Council - Kinetic Bomb
+    [38369] = true,       -- Blood Council - Empowered Blood Orb
+    [36980] = true,       -- Sindragosa - Frost Tomb
+    [37689] = true,       -- Lich King - Shambling Horror
+    [37695] = true,       -- Lich King - Ghoul Minion
 }
 
 local FindExclusionAuraByID
@@ -246,28 +246,28 @@ local lastStationary = 1
 
 local guidRanges = {}
 
--- 性能优化缓存系统
+-- Performance optimization cache system
 local cachedSafeAreaStatus = nil
 local lastSafeAreaCheck = 0
-local SAFE_AREA_CHECK_INTERVAL = 2 -- 2秒检查一次安全区域
+local SAFE_AREA_CHECK_INTERVAL = 2 -- Check safe area every 2 seconds
 
 local petRangeCache = {}
 local lastPetRangeUpdate = 0
-local PET_RANGE_CACHE_DURATION = 0.5 -- 500ms缓存
+local PET_RANGE_CACHE_DURATION = 0.5 -- 500ms cache
 
 local validUnitCache = {}
 local lastValidityCheck = {}
-local VALIDITY_CACHE_DURATION = 0.1 -- 100ms缓存
+local VALIDITY_CACHE_DURATION = 0.1 -- 100ms cache
 
 local rangeCheckBatch = {}
 local targetDataPool = {}
 
--- 新增优化变量
-local nameplateScanInterval = 0.15 -- 150ms扫描间隔
+-- Additional optimization variables
+local nameplateScanInterval = 0.15 -- 150ms scan interval
 local lastNameplateScan = 0
 local rangeCheckScheduled = false
 local lastCleanup = 0
-local maxTargetsPerFrame = 12 -- 每帧最大处理目标数
+local maxTargetsPerFrame = 12 -- Maximum targets processed per frame
 
 -- 训练假人缓存
 local trainingDummyCache = {}
@@ -501,11 +501,11 @@ local function IsTrainingDummy(unit, npcid)
     
     local isDummy = false
     
-    -- 检查已知的训练假人NPC ID
+    -- Check known training dummy NPC IDs
     if knownDummyIDs[npcid] then
         isDummy = true
     else
-        -- 检查单位名称
+        -- Check unit name
         local unitName = UnitName(unit) or ""
         if unitName:find("训练") or unitName:find("假人") or 
            unitName:find("Training") or unitName:find("Dummy") or 
@@ -867,7 +867,7 @@ function Hekili:ClearTargetCaches()
     cachedSafeAreaStatus = nil
     lastSafeAreaCheck = 0
     lastNameplateScan = 0
-    Hekili:Print("目标检测缓存已清理")
+    Hekili:Print("Target detection cache cleared")
 end
 
 -- 性能调优函数
@@ -886,7 +886,7 @@ function Hekili:SetTargetOptimizationLevel(level)
         PET_RANGE_CACHE_DURATION = 0.8
     end
     
-    Hekili:Print("目标检测优化级别设置为: " .. level)
+    Hekili:Print("Target detection optimization level set to: " .. level)
 end
 end
 

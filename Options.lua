@@ -605,7 +605,7 @@ local packTemplate = {
     builtIn = false,
 
     author = UnitName("player"),
-    desc = "这个技能优先级配置基于Hekili汉化版制作。",
+    desc = "This priority configuration was created based on Hekili.",
     source = "",
     date = tonumber( date("%Y%M%D.%H%M") ),
     warnings = "",
@@ -703,13 +703,13 @@ do
                     custom1 = {
                         key = "",
                         value = false,
-                        name = "自定义#1"
+                        name = "Custom #1"
                     },
 
                     custom2 = {
                         key = "",
                         value = false,
-                        name = "自定义#2"
+                        name = "Custom #2"
                     }
                 },
 
@@ -741,7 +741,7 @@ do
                         enabled = true,
                         builtIn = true,
 
-                    	name = "主显示",
+                    	name = "Primary",
 
                         relativeTo = "SCREEN",
                         displayPoint = "TOP",
@@ -789,7 +789,7 @@ do
                         enabled = true,
                         builtIn = true,
 
-                        name = "主要爆发",
+                        name = "Cooldowns",
                         filter = 'cooldowns',
 
                         x = 0,
@@ -812,7 +812,7 @@ do
                         enabled = true,
                         builtIn = true,
 
-                        name = "防御",
+                        name = "Defensives",
                         filter = 'defensives',
 
                         x = -110,
@@ -835,7 +835,7 @@ do
                         enabled = true,
                         builtIn = true,
 
-                        name = "打断",
+                        name = "Interrupts",
                         filter = 'interrupts',
 
                         x = -55,
@@ -1068,18 +1068,18 @@ do
     local SF = SpellFlashCore
 
     local fontStyles = {
-        ["MONOCHROME"] = "单色",
-        ["MONOCHROME,OUTLINE"] = "单色，描边",
-        ["MONOCHROME,THICKOUTLINE"] = "单色，粗描边",
-        ["NONE"] = "无",
-        ["OUTLINE"] = "描边",
-        ["THICKOUTLINE"] = "粗描边"
+        ["MONOCHROME"] = "Monochrome",
+        ["MONOCHROME,OUTLINE"] = "Monochrome, Outline",
+        ["MONOCHROME,THICKOUTLINE"] = "Monochrome, Thick Outline",
+        ["NONE"] = "None",
+        ["OUTLINE"] = "Outline",
+        ["THICKOUTLINE"] = "Thick Outline"
     }
 
     local fontElements = {
         font = {
             type = "select",
-            name = "字体",
+            name = "Font",
             order = 1,
             width = 1.49,
             dialogControl = 'LSM30_Font',
@@ -1088,7 +1088,7 @@ do
 
         fontStyle = {
             type = "select",
-            name = "样式",
+            name = "Style",
             order = 2,
             values = fontStyles,
             width = 1.49
@@ -1103,7 +1103,7 @@ do
 
         fontSize = {
             type = "range",
-            name = "尺寸",
+            name = "Size",
             order = 3,
             min = 8,
             max = 64,
@@ -1113,38 +1113,38 @@ do
 
         color = {
             type = "color",
-            name = "颜色",
+            name = "Color",
             order = 4,
             width = 1.49
         }
     }
 
     local anchorPositions = {
-        TOP = '顶部',
-        TOPLEFT = '顶部左侧',
-        TOPRIGHT = '顶部右侧',
-        BOTTOM = '底部',
-        BOTTOMLEFT = '底部左侧',
-        BOTTOMRIGHT = '底部右侧',
-        LEFT = '左侧',
-        LEFTTOP = '左侧上部',
-        LEFTBOTTOM = '左侧下部',
-        RIGHT = '右侧',
-        RIGHTTOP = '右侧上部',
-        RIGHTBOTTOM = '右侧下部',
+        TOP = 'Top',
+        TOPLEFT = 'Top Left',
+        TOPRIGHT = 'Top Right',
+        BOTTOM = 'Bottom',
+        BOTTOMLEFT = 'Bottom Left',
+        BOTTOMRIGHT = 'Bottom Right',
+        LEFT = 'Left',
+        LEFTTOP = 'Left Top',
+        LEFTBOTTOM = 'Left Bottom',
+        RIGHT = 'Right',
+        RIGHTTOP = 'Right Top',
+        RIGHTBOTTOM = 'Right Bottom',
     }
 
 
     local realAnchorPositions = {
-        TOP = '顶部',
-        TOPLEFT = '顶部左侧',
-        TOPRIGHT = '顶部右侧',
-        BOTTOM = '底部',
-        BOTTOMLEFT = '底部左侧',
-        BOTTOMRIGHT = '底部右侧',
-        CENTER = "中间",
-        LEFT = '左侧',
-        RIGHT = '右侧',
+        TOP = 'Top',
+        TOPLEFT = 'Top Left',
+        TOPRIGHT = 'Top Right',
+        BOTTOM = 'Bottom',
+        BOTTOMLEFT = 'Bottom Left',
+        BOTTOMRIGHT = 'Bottom Right',
+        CENTER = "Center",
+        LEFT = 'Left',
+        RIGHT = 'Right',
     }
 
 
@@ -1317,14 +1317,14 @@ do
                 end
 
                 if val == nil then
-                    Hekili:Error( "无法从WrapDesc获取%s的值。", table.concat( info, "：" ) )
+                    Hekili:Error( "Unable to get value for %s from WrapDesc.", table.concat( info, ": " ) )
                     info[ 2 ] = "Multi"
                     return output
                 end
 
                 -- Sanitize/format values.
                 if type( val ) == "boolean" then
-                    val = val and "|cFF00FF00勾选|r" or "|cFFFF0000未勾选|r"
+                    val = val and "|cFF00FF00Checked|r" or "|cFFFF0000Unchecked|r"
 
                 elseif option.type == "color" then
                     val = string.format( "|A:WhiteCircle-RaidBlips:16:16:0:0:%d:%d:%d|a |cFFFFD100#%02x%02x%02x|r", val * 255, v2 * 255, v3 * 255, val * 255, v2 * 255, v3 * 255 )
@@ -1355,7 +1355,7 @@ do
 
                 else
                     if val == nil then
-                        Hekili:Error( "未找到%s的值，默认设置为'???'.", table.concat( data, "：" ))
+                        Hekili:Error( "Value not found for %s, defaulting to '???'.", table.concat( data, ": " ))
                         val = "|cFFFF0000???|r"
                     else
                         val = "|cFFFFD100" .. val .. "|r"
@@ -1444,12 +1444,12 @@ do
 
         local fancyName
 
-        if name == "Multi" then fancyName = AtlasToString( "auctionhouse-icon-favorite" ) .. " 统一设置"
-        elseif name == "Primary" then fancyName = "主显示"
+        if name == "Multi" then fancyName = AtlasToString( "auctionhouse-icon-favorite" ) .. " All Displays"
+        elseif name == "Primary" then fancyName = "Primary"
         elseif name == "AOE" then fancyName = "AOE"
-        elseif name == "Defensives" then fancyName = AtlasToString( "nameplates-InterruptShield" ) .. " 防御"
-        elseif name == "Interrupts" then fancyName = AtlasToString( "voicechat-icon-speaker-mute" ) .. " 打断"
-        elseif name == "Cooldowns" then fancyName = AtlasToString( "VignetteEventElite" ) .. " 爆发"
+        elseif name == "Defensives" then fancyName = AtlasToString( "nameplates-InterruptShield" ) .. " Defensives"
+        elseif name == "Interrupts" then fancyName = AtlasToString( "voicechat-icon-speaker-mute" ) .. " Interrupts"
+        elseif name == "Cooldowns" then fancyName = AtlasToString( "VignetteEventElite" ) .. " Cooldowns"
         else fancyName = name end
 
         local option = {
@@ -1470,7 +1470,7 @@ do
                 end,
                 desc = function ()
                     if name == "Multi" then
-                        return "同时对多个显示框架进行设置。当前显示的设置项来自主显示框架（其他框架的设置项显示在鼠标指向提示中）。\n\n部分选项不可在统一设置中使用。"
+                        return "Configure multiple displays simultaneously. Settings shown are from Primary display (others shown in tooltips).\n\nSome options are not available in multi-display mode."
                     end
                     return data.desc
                 end,
@@ -1482,10 +1482,10 @@ do
                 args = {
                     MultiModPrimary = {
                         type = "toggle",
-                        name = function() return multiDisplays.Primary and "|cFF00FF00主显示|r" or "|cFFFF0000主显示|r" end,
+                        name = function() return multiDisplays.Primary and "|cFF00FF00Primary|r" or "|cFFFF0000Primary|r" end,
                         desc = function()
-                            if multiDisplays.Primary then return "更改|cFF00FF00将会|r应用于主显示框架。" end
-                            return "更改|cFFFF0000将不会|r应用于主显示框架。"
+                            if multiDisplays.Primary then return "Changes |cFF00FF00will|r apply to the Primary display." end
+                            return "Changes |cFFFF0000will not|r apply to the Primary display."
                         end,
                         order = 0.01,
                         width = 0.65,
@@ -1497,8 +1497,8 @@ do
                         type = "toggle",
                         name = function() return multiDisplays.AOE and "|cFF00FF00AOE|r" or "|cFFFF0000AOE|r" end,
                         desc = function()
-                            if multiDisplays.AOE then return "更改|cFF00FF00将会|r应用于AOE显示框架。" end
-                            return "更改|cFFFF0000将不会|r应用于AOE显示框架。"
+                            if multiDisplays.AOE then return "Changes |cFF00FF00will|r apply to the AOE display." end
+                            return "Changes |cFFFF0000will not|r apply to the AOE display."
                         end,
                         order = 0.02,
                         width = 0.65,
@@ -1508,10 +1508,10 @@ do
                     },
                     MultiModCooldowns = {
                         type = "toggle",
-                        name = function () return AtlasToString( "VignetteEventElite" ) .. ( multiDisplays.Cooldowns and " |cFF00FF00主要爆发|r" or " |cFFFF0000主要爆发|r" ) end,
+                        name = function () return AtlasToString( "VignetteEventElite" ) .. ( multiDisplays.Cooldowns and " |cFF00FF00Cooldowns|r" or " |cFFFF0000Cooldowns|r" ) end,
                         desc = function()
-                            if multiDisplays.Cooldowns then return "更改|cFF00FF00将会|r应用于主要爆发显示框架。" end
-                            return "更改|cFFFF0000将不会|r应用于主要爆发显示框架。"
+                            if multiDisplays.Cooldowns then return "Changes |cFF00FF00will|r apply to the Cooldowns display." end
+                            return "Changes |cFFFF0000will not|r apply to the Cooldowns display."
                         end,
                         order = 0.03,
                         width = 0.65,
@@ -1521,10 +1521,10 @@ do
                     },
                     MultiModDefensives = {
                         type = "toggle",
-                        name = function () return AtlasToString( "nameplates-InterruptShield" ) .. ( multiDisplays.Defensives and " |cFF00FF00防御|r" or " |cFFFF0000防御|r" ) end,
+                        name = function () return AtlasToString( "nameplates-InterruptShield" ) .. ( multiDisplays.Defensives and " |cFF00FF00Defensives|r" or " |cFFFF0000Defensives|r" ) end,
                         desc = function()
-                            if multiDisplays.Defensives then return "更改|cFF00FF00将会|r应用于防御显示框架。" end
-                            return "更改|cFFFF0000将不会|r应用于主要爆发显示框架。"
+                            if multiDisplays.Defensives then return "Changes |cFF00FF00will|r apply to the Defensives display." end
+                            return "Changes |cFFFF0000will not|r apply to the Cooldowns display."
                         end,
                         order = 0.04,
                         width = 0.65,
@@ -1534,10 +1534,10 @@ do
                     },
                     MultiModInterrupts = {
                         type = "toggle",
-                        name = function () return AtlasToString( "voicechat-icon-speaker-mute" ) .. ( multiDisplays.Interrupts and " |cFF00FF00打断|r" or " |cFFFF0000打断|r" ) end,
+                        name = function () return AtlasToString( "voicechat-icon-speaker-mute" ) .. ( multiDisplays.Interrupts and " |cFF00FF00Interrupts|r" or " |cFFFF0000Interrupts|r" ) end,
                         desc = function()
-                            if multiDisplays.Interrupts then return "更改|cFF00FF00将会|r应用于打断显示框架。" end
-                            return "更改|cFFFF0000将不会|r应用于打断显示框架。"
+                            if multiDisplays.Interrupts then return "Changes |cFF00FF00will|r apply to the Interrupts display." end
+                            return "Changes |cFFFF0000will not|r apply to the Interrupts display."
                         end,
                         order = 0.05,
                         width = 0.65,
@@ -2226,7 +2226,7 @@ do
                                 args = {
                                     queuedFont = {
                                         type = "select",
-                                        name = "字体",
+                                        name = "Font",
                                         order = 1,
                                         width = 1.49,
                                         dialogControl = 'LSM30_Font',
@@ -3078,7 +3078,7 @@ do
 
                 fontHeader = {
                     type = "header",
-                    name = "字体",
+                    name = "Font",
                     order = 960,
                 },
 
@@ -3091,7 +3091,7 @@ do
 
                 font = {
                     type = "select",
-                    name = "字体",
+                    name = "Font",
                     order = 960.1,
                     width = 1.5,
                     dialogControl = 'LSM30_Font',
@@ -3141,12 +3141,12 @@ do
                     name = "样式",
                     order = 960.3,
                     values = {
-                        ["MONOCHROME"] = "单色",
-                        ["MONOCHROME,OUTLINE"] = "单色，描边",
-                        ["MONOCHROME,THICKOUTLINE"] = "单色，粗描边",
-                        ["NONE"] = "无",
-                        ["OUTLINE"] = "描边",
-                        ["THICKOUTLINE"] = "粗描边"
+                        ["MONOCHROME"] = "Monochrome",
+                        ["MONOCHROME,OUTLINE"] = "Monochrome, Outline",
+                        ["MONOCHROME,THICKOUTLINE"] = "Monochrome, Thick Outline",
+                        ["NONE"] = "None",
+                        ["OUTLINE"] = "Outline",
+                        ["THICKOUTLINE"] = "Thick Outline"
                     },
                     get = function( info )
                         -- Display the information from Primary, Keybinds.
@@ -8201,7 +8201,7 @@ do
                     args = {
                         key = {
                             type = "keybinding",
-                            name = "主要爆发",
+                            name = "Cooldowns",
                             desc = "设置一个按键对主要爆发技能是否推荐进行开/关。",
                             order = 1,
                         },
@@ -8281,7 +8281,7 @@ do
                     args = {
                         key = {
                             type = "keybinding",
-                            name = "防御",
+                            name = "Defensives",
                             desc = "设置一个按键对防御/减伤建议进行开/关。\n" ..
                                 "\n此项仅适用于坦克专精。",
                             order = 1,
@@ -8313,7 +8313,7 @@ do
                     args = {
                         key = {
                             type = "keybinding",
-                            name = "打断",
+                            name = "Interrupts",
                             desc = "设置一个按键对打断建议进行开/关。",
                             order = 1,
                         },
@@ -8523,7 +8523,7 @@ do
                     args = {
                         key = {
                             type = "keybinding",
-                            name = "自定义#1",
+                            name = "Custom #1",
                             desc = "设置一个按键切换自定义集。",
                             order = 1,
                         },
@@ -8552,7 +8552,7 @@ do
                     args = {
                         key = {
                             type = "keybinding",
-                            name = "自定义#2",
+                            name = "Custom #2",
                             desc = "设置一个按键切换第二个自定义集合。",
                             order = 1,
                         },

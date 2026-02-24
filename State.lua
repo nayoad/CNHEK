@@ -2905,7 +2905,7 @@ do
                 if state.args.cycle_target == 1 then return UnitGUID( "target" ) .. "c" or "cycle"
                 elseif state.args.target then return ( UnitGUID( "target" ) .. '+' .. state.args.target ) or "unknown" end
                 return UnitGUID( "target" ) or "unknown"
-            elseif k == "npcid" then --加入npcid，方便获取npc的id，修复 by 风雪20250301
+            elseif k == "npcid" then -- Add npcid to easily get the NPC id
                 if UnitExists( "target" ) then
                     local id = UnitGUID( "target" )
                     id = id and id:match( "(%d+)-%x-$" )

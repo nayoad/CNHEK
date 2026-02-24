@@ -1686,7 +1686,7 @@ do
                             cd:SetCooldown(0, 0)
                             -- 可选：记录调试信息
                             if Hekili.DB.profile.debug then
-                                Hekili:Debug("冷却参数错误 - 动作: %s, start=%s, duration=%s", ability.name, tostring(start), tostring(duration))
+                                Hekili:Debug("Cooldown parameter error - action: %s, start=%s, duration=%s", ability.name, tostring(start), tostring(duration))
                             end
                         end
                         --新增参数校验，结束

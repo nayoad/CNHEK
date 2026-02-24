@@ -1,11 +1,11 @@
 -- TalentViewer.lua
--- 天赋模拟器 - 可自由点天赋、保存/加载多套方案，展示给用户看
--- BY Hekili 泰坦特供版
+-- Talent Simulator - freely allocate talents, save/load multiple builds
+-- BY Hekili Titan Edition
 
 local addonName, ns = ...
 local Hekili = _G[ addonName ]
 
--- 常量
+-- Constants
 local ICON_SIZE = 34
 local ICON_GAP = 8
 local MAX_COLS = 4
@@ -13,11 +13,11 @@ local MAX_ROWS = 11
 local HEADER_H = 50
 local TREE_PAD = 10
 local TREE_W = MAX_COLS * (ICON_SIZE + ICON_GAP) + ICON_GAP + 20
-local LIST_W = 210  -- 右侧方案列表宽度
+local LIST_W = 210  -- Right side build list width
 local FRAME_W = TREE_W * 3 + TREE_PAD * 4 + 10 + LIST_W + TREE_PAD
 local FRAME_H = MAX_ROWS * (ICON_SIZE + ICON_GAP) + HEADER_H + TREE_PAD * 2 + 110
 
--- 颜色
+-- Colors
 local CLR_MAX = {0.95, 0.85, 0.1}
 local CLR_PART = {0.1, 0.9, 0.1}
 local CLR_ZERO = {0.5, 0.5, 0.5}
@@ -25,29 +25,29 @@ local CLR_ZERO = {0.5, 0.5, 0.5}
 local viewerFrame = nil
 local currentBuildName = nil
 local currentIsPreset = false
-local isSimMode = false  -- true=模拟模式(可点), false=查看当前天赋
+local isSimMode = false  -- true=simulation mode (clickable), false=view current talents
 
--- 模拟数据: simData[tab][index] = { name, icon, tier, column, rank, maxRank }
+-- Simulation data: simData[tab][index] = { name, icon, tier, column, rank, maxRank }
 local simData = {}
 local simPoints = {0, 0, 0}
 local simTabNames = {}
 local simTabIcons = {}
-local simTotalAvail = 0  -- 可用总点数
+local simTotalAvail = 0  -- Total available talent points
 
--- 前向声明
+-- Forward declarations
 local ReadCurrentTalents
 local GetPointsInTab
 local RefreshUI
 local RefreshBuildList
 
--- 缓存 UI 检测结果
+-- Cache UI detection result
 local cachedUIFont = nil
 local cachedUIType = nil  -- "elvui", "ndui", "default"
 
 local function DetectUI()
     if cachedUIType and cachedUIType ~= "default" then return cachedUIType, cachedUIFont end
 
-    -- NDui 检测：NDui[1] = B (工具模块), NDui[4] = DB (数据库)
+    -- NDui detection: NDui[1] = B (utility module), NDui[4] = DB (database)
     if _G.NDui then
         local B = _G.NDui[1]
         if B and type(B) == "table" and (B.Reskin or B.SetBD or B.CreateBDFrame) then
@@ -58,12 +58,12 @@ local function DetectUI()
             end
             return cachedUIType, cachedUIFont
         end
-        -- 兜底：只要 NDui 存在就认定
+        -- Fallback: if NDui exists, recognize it
         cachedUIType = "ndui"
         return cachedUIType, cachedUIFont
     end
 
-    -- ElvUI 检测
+    -- ElvUI detection
     if _G.ElvUI then
         local E = _G.ElvUI[1]
         if E then
@@ -76,13 +76,13 @@ local function DetectUI()
     return "default", nil
 end
 
--- 获取 NDui B 模块
+-- Get NDui B module
 local function GetNDuiB()
     if _G.NDui then return _G.NDui[1] end
     return nil
 end
 
--- 通用皮肤辅助函数
+-- General skin helper function
 local function SkinFrame(frame, template)
     if not frame then return end
     local uiType = DetectUI()
@@ -170,8 +170,8 @@ local function SkinTreePanel(panel)
 end
 
 -- ============================================================
--- HKT 编码/解码（专用导出导入格式）
--- 格式: !HKT!<base64编码的数据>
+-- HKT encode/decode (dedicated export/import format)
+-- Format: !HKT!<base64 encoded data>
 -- ============================================================
 local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
@@ -306,9 +306,9 @@ local function ImportFromString(str)
 end
 
 -- ============================================================
--- 数据存储
--- 用户方案: 存在 global DB (SavedVariables)，每个用户独立
--- 预设方案: 存在 TalentBuilds.lua，作者维护，随插件分发
+-- Data storage
+-- User builds: stored in global DB (SavedVariables), separate per user
+-- Preset builds: in TalentBuilds.lua, maintained by author, distributed with addon
 -- ============================================================
 local function GetDB()
     if not Hekili.DB or not Hekili.DB.global then return nil end
@@ -334,15 +334,15 @@ local function GetPresetBuilds()
     return {}
 end
 
--- 获取所有方案（预设+用户），返回 { name, data, isPreset }
+-- Get all builds (preset+user), returns { name, data, isPreset }
 local function GetAllBuilds()
     local result = {}
-    -- 预设方案
+    -- Preset builds
     local presets = GetPresetBuilds()
     for name, data in pairs(presets) do
         result[name] = { data = data, isPreset = true }
     end
-    -- 用户方案（同名覆盖预设）
+    -- User builds (same name overrides preset)
     local userBuilds = GetUserBuilds()
     for name, data in pairs(userBuilds) do
         result[name] = { data = data, isPreset = false }
@@ -376,7 +376,7 @@ local function SaveBuild(buildName, data, points, tabNames)
 end
 
 local function LoadBuild(buildName)
-    -- 先查用户方案，再查预设方案
+    -- Look in user builds first, then preset builds
     local userBuilds = GetUserBuilds()
     local b = userBuilds[buildName]
     local isPreset = false
@@ -388,25 +388,25 @@ local function LoadBuild(buildName)
     end
     if not b then return false, false end
 
-    -- 先读取当前天赋结构（获取 icon/tier/column 等信息）
+    -- First read current talent structure (get icon/tier/column info)
     ReadCurrentTalents()
 
-    -- 用保存的 rank 覆盖
+    -- Override with saved rank
     for tab = 1, 3 do
         if b.talents and b.talents[tab] then
             for i, saved in pairs(b.talents[tab]) do
                 local idx = tonumber(i) or i
                 if simData[tab] and simData[tab][idx] then
                     simData[tab][idx].rank = saved.rank or 0
-                    -- 如果预设方案有 name 但没 icon，保留从游戏读取的 icon
+                    -- If preset build has name but no icon, keep the icon from the game
                     if saved.name then simData[tab][idx].name = saved.name end
                 elseif saved.name then
-                    -- 预设方案中有但当前游戏数据没有的天赋（不同职业），跳过
+                    -- Talent in preset but not in current game data (different class), skip
                 end
             end
             simPoints[tab] = GetPointsInTab(tab)
         else
-            -- 该树没有保存数据，清零
+            -- No saved data for this tree, reset to zero
             if simData[tab] then
                 for _, t in pairs(simData[tab]) do
                     t.rank = 0
@@ -414,7 +414,7 @@ local function LoadBuild(buildName)
             end
             simPoints[tab] = 0
         end
-        simTabNames[tab] = b.tabNames and b.tabNames[tab] or simTabNames[tab] or ("天赋树" .. tab)
+        simTabNames[tab] = b.tabNames and b.tabNames[tab] or simTabNames[tab] or ("Tree " .. tab)
     end
     return true, isPreset
 end
@@ -425,14 +425,14 @@ local function DeleteBuild(buildName)
 end
 
 -- ============================================================
--- 从游戏读取当前天赋到 simData
+-- Read current talents from game into simData
 -- ============================================================
 ReadCurrentTalents = function()
     local numTabs = GetNumTalentTabs()
     if not numTabs or numTabs == 0 then return end
 
     wipe(simData)
-    -- 模拟模式固定80级71点，查看模式用实际等级
+    -- Simulation mode uses fixed level 80 71 points, view mode uses actual level
     if isSimMode then
         simTotalAvail = 71
     else
@@ -443,7 +443,7 @@ ReadCurrentTalents = function()
     for tab = 1, min(numTabs, 3) do
         simData[tab] = {}
         local _, tabName, _, tabIcon, pts = GetTalentTabInfo(tab)
-        simTabNames[tab] = tabName or ("天赋树" .. tab)
+        simTabNames[tab] = tabName or ("Tree " .. tab)
         simTabIcons[tab] = tabIcon
         simPoints[tab] = tonumber(pts) or 0
 
@@ -465,10 +465,10 @@ ReadCurrentTalents = function()
 end
 
 -- ============================================================
--- 天赋点数规则检查
+-- Talent point rule check
 -- ============================================================
 local function GetTierRequirement(tier)
-    -- 第N层需要前面层总共投入 (tier-1)*5 点
+    -- Tier N requires (tier-1)*5 total points in previous tiers
     return (tier - 1) * 5
 end
 
@@ -496,7 +496,7 @@ local function CanAddPoint(tab, index)
     if t.rank >= t.maxRank then return false end
     if GetTotalPoints() >= simTotalAvail then return false end
 
-    -- 检查层级要求
+    -- Check tier requirements
     local needed = GetTierRequirement(t.tier)
     local tabPts = GetPointsInTab(tab)
     if tabPts < needed then return false end
@@ -509,11 +509,11 @@ local function CanRemovePoint(tab, index)
     if not t then return false end
     if t.rank <= 0 then return false end
 
-    -- 模拟减点后，检查更高层的天赋是否还满足前置要求
+    -- After simulated removal, check if higher tier talents still meet prerequisites
     t.rank = t.rank - 1
     local valid = true
 
-    -- 检查该天赋树中所有更高层的已点天赋
+    -- Check all higher-tier spent talents in this tree
     for _, other in pairs(simData[tab]) do
         if other.rank > 0 and other.tier > t.tier then
             local needed = GetTierRequirement(other.tier)
@@ -525,18 +525,18 @@ local function CanRemovePoint(tab, index)
         end
     end
 
-    t.rank = t.rank + 1  -- 恢复
+    t.rank = t.rank + 1  -- Restore
     return valid
 end
 
 -- ============================================================
--- 刷新右侧方案列表
+-- Refresh right side build list
 -- ============================================================
 RefreshBuildList = function()
     local f = viewerFrame
     if not f or not f.scrollChild then return end
 
-    -- 清理旧按钮
+    -- Clear old buttons
     for _, btn in ipairs(f.buildButtons) do
         btn:Hide()
         btn:SetParent(nil)
@@ -548,7 +548,7 @@ RefreshBuildList = function()
     local btnH = 32
     local btnGap = 3
 
-    -- 先显示预设方案
+    -- Show preset builds first
     for name, info in pairs(allBuilds) do
         if info.isPreset then
             local b = info.data
@@ -564,7 +564,7 @@ RefreshBuildList = function()
                 insets = { left = 2, right = 2, top = 2, bottom = 2 }
             })
 
-            -- 高亮当前选中
+            -- Highlight current selection
             if currentBuildName == name then
                 btn:SetBackdropColor(0.1, 0.3, 0.5, 0.8)
                 btn:SetBackdropBorderColor(0.3, 0.7, 1, 1)
@@ -581,7 +581,7 @@ RefreshBuildList = function()
 
             local sub = btn:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
             sub:SetPoint("LEFT", 4, -10)
-            sub:SetText("|cFF888888[预设] " .. pts .. "|r")
+            sub:SetText("|cFF888888[Preset] " .. pts .. "|r")
 
             btn:SetScript("OnClick", function()
                 isSimMode = true
@@ -607,7 +607,7 @@ RefreshBuildList = function()
         end
     end
 
-    -- 再显示用户方案
+    -- Then show user builds
     for name, info in pairs(allBuilds) do
         if not info.isPreset then
             local b = info.data
@@ -639,19 +639,19 @@ RefreshBuildList = function()
 
             local sub = btn:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
             sub:SetPoint("LEFT", 4, -10)
-            sub:SetText("|cFF888888[自建] " .. pts .. "|r")
+            sub:SetText("|cFF888888[Custom] " .. pts .. "|r")
 
-            -- 左键加载，右键删除（弹确认框）
+            -- Left-click to load, right-click to delete (confirmation dialog)
             btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
             btn:SetScript("OnClick", function(self, button)
                 if button == "RightButton" then
                     StaticPopupDialogs["HEKILI_TV_DELETE_BUILD"] = {
-                        text = "确认删除方案 \"%s\" ？",
-                        button1 = "确认",
-                        button2 = "取消",
+                        text = "Confirm delete build \"%s\"?",
+                        button1 = "Confirm",
+                        button2 = "Cancel",
                         OnAccept = function()
                             DeleteBuild(name)
-                            Hekili:Print("|cFFFFFF00方案 \"" .. name .. "\" 已删除。|r")
+                            Hekili:Print("|cFFFFFF00Build \"" .. name .. "\" deleted.|r")
                             if currentBuildName == name then
                                 currentBuildName = nil
                                 currentIsPreset = false
@@ -679,8 +679,8 @@ RefreshBuildList = function()
                 GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                 GameTooltip:AddLine(name, 1, 1, 1)
                 GameTooltip:AddLine(pts, 0.7, 0.7, 0.7)
-                GameTooltip:AddLine("左键: 加载方案", 0, 1, 0)
-                GameTooltip:AddLine("右键: 删除方案", 1, 0.3, 0.3)
+                GameTooltip:AddLine("Left-click: Load build", 0, 1, 0)
+                GameTooltip:AddLine("Right-click: Delete build", 1, 0.3, 0.3)
                 GameTooltip:Show()
             end)
             btn:SetScript("OnLeave", function(self)
@@ -695,44 +695,44 @@ RefreshBuildList = function()
         end
     end
 
-    -- 更新滚动区域高度
+    -- Update scroll area height
     f.scrollChild:SetHeight(max(1, yOff))
 end
 
 -- ============================================================
--- UI 刷新
+-- UI refresh
 -- ============================================================
 RefreshUI = function()
     local f = viewerFrame
     if not f or not f:IsShown() then return end
 
-    -- 职业信息
+    -- Class info
     local _, className = UnitClass("player")
     local classColor = RAID_CLASS_COLORS[className] or {r=1, g=1, b=1}
     local localizedClass = UnitClass("player")
-    f.classInfo:SetText(format("|cFF%02x%02x%02x%s|r  等级 %d",
+    f.classInfo:SetText(format("|cFF%02x%02x%02x%s|r  Level %d",
         classColor.r * 255, classColor.g * 255, classColor.b * 255,
         localizedClass, UnitLevel("player")))
 
     local totalUsed = GetTotalPoints()
     local remaining = simTotalAvail - totalUsed
 
-    -- 模式标识
+    -- Mode label
     if isSimMode then
         if currentBuildName then
-            local tag = currentIsPreset and "|cFF00CCFF[预设]|r" or "|cFF00FF00[自建]|r"
-            f.modeText:SetText("|cFF00FFFF[模拟模式]|r " .. tag .. " |cFFFFFF00" .. currentBuildName .. "|r")
+            local tag = currentIsPreset and "|cFF00CCFF[Preset]|r" or "|cFF00FF00[Custom]|r"
+            f.modeText:SetText("|cFF00FFFF[Sim Mode]|r " .. tag .. " |cFFFFFF00" .. currentBuildName .. "|r")
         else
-            f.modeText:SetText("|cFF00FFFF[模拟模式]|r 未保存")
+            f.modeText:SetText("|cFF00FFFF[Sim Mode]|r Unsaved")
         end
-        f.pointsInfo:SetText("|cFFFFFFFF已用: |cFFFFFF00" .. totalUsed .. "|r / " .. simTotalAvail ..
-            "  |cFFFFFFFF剩余: " .. (remaining > 0 and "|cFF00FF00" or "|cFFFF0000") .. remaining .. "|r")
+        f.pointsInfo:SetText("|cFFFFFFFFUsed: |cFFFFFF00" .. totalUsed .. "|r / " .. simTotalAvail ..
+            "  |cFFFFFFFFRemaining: " .. (remaining > 0 and "|cFF00FF00" or "|cFFFF0000") .. remaining .. "|r")
     else
-        f.modeText:SetText("|cFF00FF00[当前天赋]|r")
-        f.pointsInfo:SetText("|cFFFFFFFF总天赋点: |cFFFFFF00" .. totalUsed .. "|r / " .. simTotalAvail)
+        f.modeText:SetText("|cFF00FF00[Current Talents]|r")
+        f.pointsInfo:SetText("|cFFFFFFFFTotal Talent Points: |cFFFFFF00" .. totalUsed .. "|r / " .. simTotalAvail)
     end
 
-    -- 自动填充保存名称框
+    -- Auto-fill save name box
     if f.saveNameBox then
         if currentBuildName then
             f.saveNameBox:SetText(currentBuildName)
@@ -743,7 +743,7 @@ RefreshUI = function()
         end
     end
 
-    -- 刷新3棵树
+    -- Refresh 3 trees
     for tab = 1, 3 do
         local tabPts = GetPointsInTab(tab)
         local tabMax = 0
@@ -754,10 +754,10 @@ RefreshUI = function()
         end
 
         local hdrColor = tabPts > 0 and "|cFF00FF00" or "|cFF888888"
-        f.treeHeaders[tab]:SetText(hdrColor .. (simTabNames[tab] or "未知") .. "|r  " ..
+        f.treeHeaders[tab]:SetText(hdrColor .. (simTabNames[tab] or "Unknown") .. "|r  " ..
             "|cFFFFFF00" .. tabPts .. "|r / " .. tabMax)
 
-        -- 刷新图标
+        -- Refresh icons
         for idx, btn in pairs(f.talentBtns[tab]) do
             btn:Hide()
         end
@@ -806,12 +806,12 @@ RefreshUI = function()
         end
     end
 
-    -- 刷新右侧方案列表
+    -- Refresh right side build list
     RefreshBuildList()
 end
 
 -- ============================================================
--- 创建天赋按钮
+-- Create talent button
 -- ============================================================
 function CreateTalentButton(parent, tab, index)
     local btn = CreateFrame("Button", nil, parent)
@@ -822,7 +822,7 @@ function CreateTalentButton(parent, tab, index)
     icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     btn.icon = icon
 
-    -- 1px 像素边框（ElvUI 风格）
+    -- 1px border (ElvUI style)
     local border = CreateFrame("Frame", nil, btn, "BackdropTemplate")
     border:SetPoint("TOPLEFT", -1, 1)
     border:SetPoint("BOTTOMRIGHT", 1, -1)
@@ -849,7 +849,7 @@ function CreateTalentButton(parent, tab, index)
     desatOverlay:SetColorTexture(0, 0, 0, 0.5)
     btn.desatOverlay = desatOverlay
 
-    -- 鼠标提示
+    -- Mouse tooltip
     btn:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         if not isSimMode and self.talentTab and self.talentIndex then
@@ -858,14 +858,14 @@ function CreateTalentButton(parent, tab, index)
             local t = simData[self.talentTab] and simData[self.talentTab][self.talentIndex]
             if t then
                 GameTooltip:AddLine(t.name, 1, 1, 1)
-                GameTooltip:AddLine(format("等级: %d / %d", t.rank, t.maxRank), CLR_PART[1], CLR_PART[2], CLR_PART[3])
-                GameTooltip:AddLine(format("层级: %d", t.tier), 0.7, 0.7, 0.7)
+                GameTooltip:AddLine(format("Rank: %d / %d", t.rank, t.maxRank), CLR_PART[1], CLR_PART[2], CLR_PART[3])
+                GameTooltip:AddLine(format("Tier: %d", t.tier), 0.7, 0.7, 0.7)
                 if isSimMode then
                     if CanAddPoint(self.talentTab, self.talentIndex) then
-                        GameTooltip:AddLine("左键: 加点", 0, 1, 0)
+                        GameTooltip:AddLine("Left-click: Add point", 0, 1, 0)
                     end
                     if CanRemovePoint(self.talentTab, self.talentIndex) then
-                        GameTooltip:AddLine("右键: 减点", 1, 0.3, 0.3)
+                        GameTooltip:AddLine("Right-click: Remove point", 1, 0.3, 0.3)
                     end
                 end
             end
@@ -876,7 +876,7 @@ function CreateTalentButton(parent, tab, index)
         GameTooltip:Hide()
     end)
 
-    -- 左键加点
+    -- Left-click to add point
     btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     btn:SetScript("OnClick", function(self, button)
         if not isSimMode then return end
@@ -901,7 +901,7 @@ function CreateTalentButton(parent, tab, index)
 end
 
 -- ============================================================
--- 创建主框架
+-- Create main frame
 -- ============================================================
 local function CreateViewer()
     if viewerFrame then return viewerFrame end
@@ -923,17 +923,17 @@ local function CreateViewer()
     })
     f:SetBackdropColor(0.08, 0.08, 0.08, 0.95)
 
-    -- 标题
+    -- Title
     local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOP", 0, -8)
-    title:SetText("|cFF00FF00Hekili|r 天赋模拟器")
+    title:SetText("|cFF00FF00Hekili|r Talent Simulator")
 
-    -- 关闭按钮
+    -- Close button
     local closeBtn = CreateFrame("Button", nil, f, "UIPanelCloseButton")
     closeBtn:SetPoint("TOPRIGHT", -3, -3)
     closeBtn:SetScript("OnClick", function() f:Hide() end)
 
-    -- 第二行: 职业信息 + 模式
+    -- Second row: class info + mode
     local classInfo = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     classInfo:SetPoint("TOPLEFT", 12, -28)
     f.classInfo = classInfo
@@ -946,7 +946,7 @@ local function CreateViewer()
     pointsInfo:SetPoint("TOPRIGHT", -40, -28)
     f.pointsInfo = pointsInfo
 
-    -- 3棵天赋树
+    -- 3 talent trees
     f.treePanels = {}
     f.treeHeaders = {}
     f.talentBtns = {}
@@ -971,22 +971,22 @@ local function CreateViewer()
 
         f.talentBtns[tab] = {}
 
-        -- 每棵树底部的"应用"按钮
+        -- "Apply" button at the bottom of each tree
         local treeApplyBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
         treeApplyBtn:SetSize(TREE_W - 16, 20)
         treeApplyBtn:SetPoint("BOTTOM", panel, "BOTTOM", 0, 4)
-        treeApplyBtn:SetText("|cFFFF8800应用天赋|r")
+        treeApplyBtn:SetText("|cFFFF8800Apply Talents|r")
         treeApplyBtn.tabIndex = tab
         treeApplyBtn:SetScript("OnClick", function(self)
             if not isSimMode then
-                Hekili:Print("|cFFFF0000请先加载一个模拟方案！|r")
+                Hekili:Print("|cFFFF0000Please load a simulation build first!|r")
                 return
             end
 
             local myTab = self.tabIndex
             local applied = 0
 
-            -- 构建目标rank
+            -- Build target rank
             local targets = {}
             if simData[myTab] then
                 for k, sim in pairs(simData[myTab]) do
@@ -994,7 +994,7 @@ local function CreateViewer()
                 end
             end
 
-            -- 从游戏API读取天赋结构并排序
+            -- Read talent structure from game API and sort
             local numTalents = GetNumTalents(myTab)
             local sorted = {}
             for i = 1, numTalents do
@@ -1009,7 +1009,7 @@ local function CreateViewer()
                 return a.column < b.column
             end)
 
-            -- 多轮循环点完这棵树
+            -- Loop multiple rounds to spend all points in this tree
             for round = 1, 80 do
                 local allDone = true
                 for _, entry in ipairs(sorted) do
@@ -1035,16 +1035,16 @@ local function CreateViewer()
             end
 
             if applied > 0 then
-                Hekili:Print(format("|cFF00FF00[%s] 成功应用 %d 个天赋点！|r", simTabNames[myTab] or "?", applied))
+                Hekili:Print(format("|cFF00FF00[%s] Successfully applied %d talent points!|r", simTabNames[myTab] or "?", applied))
             else
-                Hekili:Print(format("|cFFFFFF00[%s] 已与方案一致，无需操作。|r", simTabNames[myTab] or "?"))
+                Hekili:Print(format("|cFFFFFF00[%s] Already matches build, no action needed.|r", simTabNames[myTab] or "?")
             end
         end)
         f.treePanels[tab].applyBtn = treeApplyBtn
     end
 
     -- ============================================================
-    -- 右侧方案列表面板
+    -- Right side build list panel
     -- ============================================================
     local listPanel = CreateFrame("Frame", nil, f, "BackdropTemplate")
     listPanel:SetPoint("TOPLEFT", f, "TOPLEFT", TREE_W * 3 + TREE_PAD * 3.5 + 10, -(HEADER_H))
@@ -1059,9 +1059,9 @@ local function CreateViewer()
 
     local listTitle = listPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     listTitle:SetPoint("TOP", 0, -5)
-    listTitle:SetText("|cFFFFFF00已保存方案|r")
+    listTitle:SetText("|cFFFFFF00Saved Builds|r")
 
-    -- 滚动区域
+    -- Scroll area
     local scrollFrame = CreateFrame("ScrollFrame", nil, listPanel)
     scrollFrame:SetPoint("TOPLEFT", 5, -22)
     scrollFrame:SetPoint("BOTTOMRIGHT", -5, 5)
@@ -1070,7 +1070,7 @@ local function CreateViewer()
     scrollChild:SetSize(LIST_W - 10, 1)
     scrollFrame:SetScrollChild(scrollChild)
 
-    -- 鼠标滚轮滚动
+    -- Mouse wheel scrolling
     scrollFrame:EnableMouseWheel(true)
     scrollFrame:SetScript("OnMouseWheel", function(self, delta)
         local current = self:GetVerticalScroll()
@@ -1086,17 +1086,17 @@ local function CreateViewer()
     f.buildButtons = {}
 
     -- ============================================================
-    -- 底部按钮栏
+    -- Bottom button bar
     -- ============================================================
     local btnY = -FRAME_H + 30
     local btnW, btnH = 90, 22
     local btnGap = 6
 
-    -- 查看当前天赋
+    -- View current talents
     local btnCurrent = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     btnCurrent:SetSize(btnW, btnH)
     btnCurrent:SetPoint("BOTTOMLEFT", 10, 8)
-    btnCurrent:SetText("当前天赋")
+    btnCurrent:SetText("Current Talents")
     btnCurrent:SetScript("OnClick", function()
         isSimMode = false
         currentBuildName = nil
@@ -1105,16 +1105,16 @@ local function CreateViewer()
         RefreshUI()
     end)
 
-    -- 新建模拟
+    -- New simulation
     local btnNew = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     btnNew:SetSize(btnW, btnH)
     btnNew:SetPoint("LEFT", btnCurrent, "RIGHT", btnGap, 0)
-    btnNew:SetText("新建模拟")
+    btnNew:SetText("New Sim")
     btnNew:SetScript("OnClick", function()
         isSimMode = true
         currentBuildName = nil
         currentIsPreset = false
-        -- 读取当前天赋结构但清零所有点数
+        -- Read current talent structure but reset all points to zero
         ReadCurrentTalents()
         for tab = 1, 3 do
             if simData[tab] then
@@ -1127,11 +1127,11 @@ local function CreateViewer()
         RefreshUI()
     end)
 
-    -- 从当前天赋开始模拟
+    -- Simulate from current talents
     local btnFromCurrent = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     btnFromCurrent:SetSize(btnW + 20, btnH)
     btnFromCurrent:SetPoint("LEFT", btnNew, "RIGHT", btnGap, 0)
-    btnFromCurrent:SetText("基于当前模拟")
+    btnFromCurrent:SetText("Sim from Current")
     btnFromCurrent:SetScript("OnClick", function()
         isSimMode = true
         currentBuildName = nil
@@ -1140,11 +1140,11 @@ local function CreateViewer()
         RefreshUI()
     end)
 
-    -- 重置点数
+    -- Reset points
     local btnReset = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     btnReset:SetSize(btnW - 10, btnH)
     btnReset:SetPoint("LEFT", btnFromCurrent, "RIGHT", btnGap, 0)
-    btnReset:SetText("重置")
+    btnReset:SetText("Reset")
     btnReset:SetScript("OnClick", function()
         if not isSimMode then return end
         for tab = 1, 3 do
@@ -1158,7 +1158,7 @@ local function CreateViewer()
         RefreshUI()
     end)
 
-    -- 保存方案名称输入框（手动创建，兼容WotLK）
+    -- Save build name input box (manually created, WotLK compatible)
     local saveNameBox = CreateFrame("EditBox", "HekiliTVSaveNameBox", f, "BackdropTemplate")
     saveNameBox:SetSize(130, 22)
     saveNameBox:SetPoint("LEFT", btnReset, "RIGHT", btnGap + 10, 0)
@@ -1178,24 +1178,24 @@ local function CreateViewer()
     saveNameBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
     saveNameBox:SetScript("OnEnterPressed", function(self)
         self:ClearFocus()
-        -- 回车直接保存
+        -- Press Enter to save directly
         if isSimMode then
             local name = self:GetText():trim()
             if name ~= "" then
                 SaveBuild(name, simData, simPoints, simTabNames)
                 currentBuildName = name
                 currentIsPreset = false
-                Hekili:Print("|cFF00FF00天赋方案 \"" .. name .. "\" 已保存！|r")
+                Hekili:Print("|cFF00FF00Talent build \"" .. name .. "\" saved!|r")
                 RefreshUI()
             end
         end
     end)
     f.saveNameBox = saveNameBox
 
-    -- 输入框提示文字
+    -- Input box placeholder text
     local placeholder = saveNameBox:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     placeholder:SetPoint("LEFT", 6, 0)
-    placeholder:SetText("输入方案名称...")
+    placeholder:SetText("Enter build name...")
     saveNameBox.placeholder = placeholder
     saveNameBox:SetScript("OnTextChanged", function(self)
         if self:GetText() == "" then
@@ -1211,42 +1211,42 @@ local function CreateViewer()
         self:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
     end)
 
-    -- 保存方案按钮
+    -- Save build button
     local btnSave = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     btnSave:SetSize(btnW - 10, btnH)
     btnSave:SetPoint("LEFT", saveNameBox, "RIGHT", btnGap, 0)
-    btnSave:SetText("|cFF00FF00保存|r")
+    btnSave:SetText("|cFF00FF00Save|r")
     btnSave:SetScript("OnClick", function()
         if not isSimMode then
-            Hekili:Print("|cFFFF0000请先进入模拟模式再保存！|r")
+            Hekili:Print("|cFFFF0000Please enter simulation mode before saving!|r")
             return
         end
         local name = saveNameBox:GetText():trim()
         if name == "" then
-            Hekili:Print("|cFFFF0000请输入方案名称！|r")
+            Hekili:Print("|cFFFF0000Please enter a build name!|r")
             return
         end
         SaveBuild(name, simData, simPoints, simTabNames)
         currentBuildName = name
         currentIsPreset = false
-        Hekili:Print("|cFF00FF00天赋方案 \"" .. name .. "\" 已保存！|r")
+        Hekili:Print("|cFF00FF00Talent build \"" .. name .. "\" saved!|r")
         RefreshUI()
     end)
 
-    -- 导出代码按钮
+    -- Export button
     local btnExport = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     btnExport:SetSize(btnW - 10, btnH)
     btnExport:SetPoint("LEFT", btnSave, "RIGHT", btnGap, 0)
-    btnExport:SetText("|cFFFF8800导出|r")
+    btnExport:SetText("|cFFFF8800Export|r")
     btnExport:SetScript("OnClick", function()
         if not isSimMode then
-            Hekili:Print("|cFFFF0000请先进入模拟模式！|r")
+            Hekili:Print("|cFFFF0000Please enter simulation mode first!|r")
             return
         end
         local buildName = saveNameBox:GetText():trim()
-        if buildName == "" then buildName = "未命名方案" end
+        if buildName == "" then buildName = "Unnamed Build" end
 
-        -- 收集天赋数据
+        -- Collect talent data
         local talentsForExport = {}
         for tab = 1, 3 do
             talentsForExport[tab] = {}
@@ -1266,7 +1266,7 @@ local function CreateViewer()
         local pts = { GetPointsInTab(1), GetPointsInTab(2), GetPointsInTab(3) }
         local exportStr = ExportToString(buildName, simTabNames, pts, talentsForExport)
 
-        -- 显示在可复制的文本框中
+        -- Display in a copyable text box
         if not viewerFrame.exportFrame then
             local ef = CreateFrame("Frame", nil, viewerFrame, "BackdropTemplate")
             ef:SetSize(500, 200)
@@ -1287,11 +1287,11 @@ local function CreateViewer()
 
             local efTitle = ef:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
             efTitle:SetPoint("TOP", 0, -8)
-            efTitle:SetText("|cFFFF8800导出天赋字符串|r")
+            efTitle:SetText("|cFFFF8800Export Talent String|r")
 
             local efHint = ef:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             efHint:SetPoint("TOP", 0, -26)
-            efHint:SetText("|cFFAAAAAACtrl+A 全选, Ctrl+C 复制, 发给其他玩家导入|r")
+            efHint:SetText("|cFFAAAAAACtrl+A Select All, Ctrl+C Copy, share with others to import|r")
 
             local scrollFrame = CreateFrame("ScrollFrame", nil, ef)
             scrollFrame:SetPoint("TOPLEFT", 10, -42)
@@ -1318,7 +1318,7 @@ local function CreateViewer()
             local efClose = CreateFrame("Button", nil, ef, "UIPanelButtonTemplate")
             efClose:SetSize(80, 22)
             efClose:SetPoint("BOTTOM", 0, 8)
-            efClose:SetText("关闭")
+            efClose:SetText("Close")
             efClose:SetScript("OnClick", function() ef:Hide() end)
 
             viewerFrame.exportFrame = ef
@@ -1340,11 +1340,11 @@ local function CreateViewer()
         ef.editBox:HighlightText()
     end)
 
-    -- 导入按钮
+    -- Import button
     local btnImport = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     btnImport:SetSize(btnW - 10, btnH)
     btnImport:SetPoint("LEFT", btnExport, "RIGHT", btnGap, 0)
-    btnImport:SetText("|cFF00CCFF导入|r")
+    btnImport:SetText("|cFF00CCFF Import|r")
     btnImport:SetScript("OnClick", function()
         if not viewerFrame.importFrame then
             local imf = CreateFrame("Frame", nil, viewerFrame, "BackdropTemplate")
@@ -1366,11 +1366,11 @@ local function CreateViewer()
 
             local imfTitle = imf:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
             imfTitle:SetPoint("TOP", 0, -8)
-            imfTitle:SetText("|cFF00CCFF导入天赋字符串|r")
+            imfTitle:SetText("|cFF00CCFF Import Talent String|r")
 
             local imfHint = imf:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             imfHint:SetPoint("TOP", 0, -26)
-            imfHint:SetText("|cFFAAAAAAAA粘贴 !HKT! 开头的天赋字符串，然后点击导入|r")
+            imfHint:SetText("|cFFAAAAAAAAPaste a talent string starting with !HKT!, then click Import|r")
 
             local scrollFrame = CreateFrame("ScrollFrame", nil, imf)
             scrollFrame:SetPoint("TOPLEFT", 10, -42)
@@ -1397,17 +1397,17 @@ local function CreateViewer()
             local imfImport = CreateFrame("Button", nil, imf, "UIPanelButtonTemplate")
             imfImport:SetSize(80, 22)
             imfImport:SetPoint("BOTTOMLEFT", 100, 8)
-            imfImport:SetText("|cFF00FF00导入|r")
+            imfImport:SetText("|cFF00FF00Import|r")
             imfImport:SetScript("OnClick", function()
                 local text = imf.editBox:GetText()
                 if not text or text:trim() == "" then
-                    Hekili:Print("|cFFFF0000请粘贴天赋字符串！|r")
+                    Hekili:Print("|cFFFF0000Please paste a talent string!|r")
                     return
                 end
 
                 local parsed = ImportFromString(text)
                 if not parsed then
-                    Hekili:Print("|cFFFF0000无法解析！请确认是 !HKT! 开头的有效字符串。|r")
+                    Hekili:Print("|cFFFF0000Failed to parse! Please confirm it is a valid !HKT! string.|r")
                     return
                 end
 
@@ -1419,7 +1419,7 @@ local function CreateViewer()
                 end
 
                 if totalParsed == 0 then
-                    Hekili:Print("|cFFFF0000未解析到任何天赋数据！|r")
+                    Hekili:Print("|cFFFF0000No talent data found in string!|r")
                     return
                 end
 
@@ -1445,7 +1445,7 @@ local function CreateViewer()
                 currentBuildName = parsed.name
                 currentIsPreset = false
 
-                Hekili:Print(format("|cFF00FF00成功导入方案 \"%s\" (%d/%d/%d)，共 %d 个天赋！|r",
+                Hekili:Print(format("|cFF00FF00Successfully imported build \"%s\" (%d/%d/%d), %d talents total!|r",
                     parsed.name, parsed.points[1], parsed.points[2], parsed.points[3], totalParsed))
 
                 imf:Hide()
@@ -1455,7 +1455,7 @@ local function CreateViewer()
             local imfClose = CreateFrame("Button", nil, imf, "UIPanelButtonTemplate")
             imfClose:SetSize(80, 22)
             imfClose:SetPoint("BOTTOMRIGHT", -100, 8)
-            imfClose:SetText("取消")
+            imfClose:SetText("Cancel")
             imfClose:SetScript("OnClick", function() imf:Hide() end)
 
             viewerFrame.importFrame = imf
@@ -1490,19 +1490,19 @@ local function CreateViewer()
 end
 
 -- ============================================================
--- 公开 API
+-- Public API
 -- ============================================================
 function Hekili:ToggleTalentViewer()
     local f = CreateViewer()
 
-    -- NDui / ElvUI 皮肤接管（首次打开时执行一次）
+    -- NDui / ElvUI skin takeover (executed once on first open)
     if not f._skinApplied then
         f._skinApplied = true
 
-        -- 主框架
+        -- Main frame
         SkinFrame(f)
 
-        -- 天赋树面板（手动 backdrop，不用 SetTemplate 避免 inset 挤压图标）
+        -- Talent tree panel (manual backdrop, avoid SetTemplate inset squeezing icons)
         for tab = 1, 3 do
             if f.treePanels and f.treePanels[tab] then
                 SkinTreePanel(f.treePanels[tab])
@@ -1510,17 +1510,17 @@ function Hekili:ToggleTalentViewer()
             end
         end
 
-        -- 列表面板
+        -- List panel
         SkinFrame(f.listPanel)
         SkinEditBox(f.saveNameBox)
 
-        -- 底部按钮皮肤
+        -- Bottom button skin
         local bottomBtns = { f.btnCurrent, f.btnNew, f.btnFromCurrent, f.btnReset, f.btnSave, f.btnExport, f.btnImport }
         for _, btn in ipairs(bottomBtns) do
             SkinButton(btn)
         end
 
-        -- 适配字体
+        -- Adapt font
         if f.classInfo then SetUIFont(f.classInfo, 12) end
         if f.modeText then SetUIFont(f.modeText, 12) end
         if f.pointsInfo then SetUIFont(f.pointsInfo, 12) end
@@ -1553,7 +1553,7 @@ function Hekili:ToggleTalentViewer()
             end
         end
 
-        -- 关闭按钮皮肤
+        -- Close button skin
         for _, child in pairs({f:GetChildren()}) do
             if child.GetObjectType and child:GetObjectType() == "Button" then
                 if child.GetNormalTexture and child:GetNormalTexture() then
@@ -1595,7 +1595,7 @@ function Hekili:RefreshTalentViewer()
     end
 end
 
--- 斜杠命令
+-- Slash commands
 SLASH_HEKILITV1 = "/hekilitv"
 SLASH_HEKILITV2 = "/htv"
 SlashCmdList["HEKILITV"] = function(msg)

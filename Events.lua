@@ -1301,7 +1301,7 @@ local lowLevelWarned = false
 -- Need to make caching system.
 RegisterUnitEvent( "UNIT_SPELLCAST_SUCCEEDED", "player", "target", function( event, unit, _, spellID )
     if lowLevelWarned == false and UnitLevel( "player" ) < 50 then
-        Hekili:Notify( "Hekili基于最高等级设计,低于50级效果可能不尽人意。", 5 )
+        Hekili:Notify( "Hekili is designed for max level; results below level 50 may be unreliable.", 5 )
         lowLevelWarned = true
     end
 
@@ -2724,25 +2724,25 @@ else
     end
 end
 
-state.defile_target_is_me = false  --新增污染目标判断函数 by风雪 20250831
+state.defile_target_is_me = false  -- Defile target detection function
 
--- 方案1：团队目标查找
+-- Method 1: Team target lookup
 RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", function()
     local _, subevent, _, _, sourceName, _, _, _, _, _, _, spellID = CombatLogGetCurrentEventInfo()
-    if subevent ~= "SPELL_CAST_START" or sourceName ~= "巫妖王" or spellID ~= 72762 then return end --只处理巫妖王开始施法污染
+    if subevent ~= "SPELL_CAST_START" or sourceName ~= "The Lich King" or spellID ~= 72762 then return end -- Only handle Lich King casting Defile
 
     C_Timer.After(0.2, function()
-        -- 遍历团队成员查找目标为巫妖王的单位
+        -- Scan raid members to find who is targeting the Lich King
         for i = 1, 25 do
-            -- 构建团队成员目标单位ID
+            -- Build the raid member target unit ID
             local raidtarget = "raid"..i.."target"
-            -- 检查成员目标是否存在且是巫妖王
-            if UnitExists(raidtarget) and UnitName(raidtarget) == "巫妖王" then
-                local LichKingTarget = raidtarget.."target"  -- 巫妖王的目标
-                -- 检查巫妖王的目标是否是玩家自己
+            -- Check if the member's target exists and is the Lich King
+            if UnitExists(raidtarget) and UnitName(raidtarget) == "The Lich King" then
+                local LichKingTarget = raidtarget.."target"  -- The Lich King's target
+                -- Check whether the Lich King's target is the player
                 if UnitExists(LichKingTarget) then
                     state.defile_target_is_me = (UnitName(LichKingTarget) == UnitName("player"))
-                    return -- 无论是否自己都终止循环
+                    return -- Stop loop regardless
                 end
             end
         end
@@ -2753,17 +2753,17 @@ RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", function()
 end)
 
 --[[
--- 方案2：焦点目标查找，需设置巫妖王为焦点
+-- Method 2: Focus target lookup, requires setting the Lich King as focus
 
 RegisterUnitEvent( "UNIT_SPELLCAST_START", "focus", "target", function( event, unit, cast, spellID )
 
-    if spellID ~= 72762 then return end -- 污染
+    if spellID ~= 72762 then return end -- Defile
 
     C_Timer.After(0.2, function()
-        local playerName = UnitName("player") -- 角色
-        local targetName = UnitName("target") -- 目标
-        local focustargetName = UnitName("focustarget")    -- 焦点目标
-        local targettargetName = UnitName("targettarget")  -- 目标的目标
+        local playerName = UnitName("player") -- Player
+        local targetName = UnitName("target") -- Target
+        local focustargetName = UnitName("focustarget")    -- Focus target
+        local targettargetName = UnitName("targettarget")  -- Target's target
         
         if focustargetName == playerName or (targetName ~= playerName and targettargetName == playerName) then
             state.defile_target_is_me = true
