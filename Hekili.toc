@@ -1,10 +1,10 @@
 ## Interface: 38000
-## Version: v3.80.0-2.0.13-泰坦特别版
+## Version: v3.80.0-2.0.13-Titan-Edition
 ## Title: Hekili
-## Title-zhCN: Hekili 泰坦
-## Author: Hekili,Hutu,风雪,哑吡Wind
+## Title-zhCN: Hekili Titan
+## Author: Hekili,Hutu,Fengxue,Yabi-Wind
 ## X-Flavor: Wrath
-## Notes: 基于SimulationCraft行动列表的DPS和坦克的技能优先级提示助手。
+## Notes: Priority helper addon for DPS and tanks based on SimulationCraft action lists.
 ## SavedVariables: HekiliDB
 ## OptionalDeps: AddOnSkins, ButtonForge, ConsolePort, ElvUI, LibDualSpec-1.0, Masque, WeakAuras
 ## X-Curse-Project-ID: 69254
